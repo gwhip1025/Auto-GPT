@@ -3,6 +3,7 @@ import string
 import sys
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from autogpt.config import Config
 from autogpt.memory.local import LocalCache
@@ -14,6 +15,28 @@ class TestLocalCache(unittest.TestCase):
 
     def setUp(self):
         cfg = cfg = Config()
+        cfg.memory_index = "test-cache"
+        embeddings = {}
+
+        def fake_embed(text):
+            if text not in embeddings:
+                vec = [0.0] * 1536
+                index = len(embeddings)
+                vec[index % 1536] = 1.0
+                embeddings[text] = vec
+            return embeddings[text]
+
+        patch_base = mock.patch(
+            "autogpt.memory.base.get_ada_embedding", side_effect=fake_embed
+        )
+        patch_local = mock.patch(
+            "autogpt.memory.local.get_ada_embedding", side_effect=fake_embed
+        )
+        patch_base.start()
+        patch_local.start()
+        self.addCleanup(patch_base.stop)
+        self.addCleanup(patch_local.stop)
+
         self.cache = LocalCache(cfg)
         self.cache.clear()
 
