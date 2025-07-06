@@ -1,7 +1,8 @@
 import os
 import sys
+import unittest
 
-from autogpt.memory.local import LocalCache
+from autogpt.memory.local import EMBED_DIM, LocalCache
 
 
 def MockConfig():
@@ -29,7 +30,10 @@ class TestLocalCache(unittest.TestCase):
 
     def test_clear(self):
         self.cache.clear()
-        self.assertEqual(self.cache.data, [""])
+        self.assertEqual(self.cache.data.texts, [])
+        self.assertEqual(self.cache.data.embeddings.shape[0], 0)
+        # Optionally ensure embedding dimension is correct
+        self.assertEqual(self.cache.data.embeddings.shape[1], EMBED_DIM)
 
     def test_get(self):
         text = "Sample text"
