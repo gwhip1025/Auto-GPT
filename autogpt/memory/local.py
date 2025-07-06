@@ -29,11 +29,13 @@ class LocalCache(MemoryProviderSingleton):
         self.filename = f"{cfg.memory_index}.json"
         if os.path.exists(self.filename):
             try:
-                with open(self.filename, "w+b") as f:
+                with open(self.filename, "r+b") as f:
                     file_content = f.read()
                     if not file_content.strip():
                         file_content = b"{}"
+                        f.seek(0)
                         f.write(file_content)
+                        f.truncate()
 
                     loaded = orjson.loads(file_content)
                     self.data = CacheContent(**loaded)
@@ -42,8 +44,10 @@ class LocalCache(MemoryProviderSingleton):
                 self.data = CacheContent()
         else:
             print(
-                f"Warning: The file '{self.filename}' does not exist. Local memory would not be saved to a file."
+                f"Warning: The file '{self.filename}' does not exist. Local memory will be saved to a new file."
             )
+            with open(self.filename, "w+b") as f:
+                f.write(b"{}")
             self.data = CacheContent()
 
     def add(self, text: str):
