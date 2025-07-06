@@ -29,7 +29,9 @@ class LocalCache(MemoryProviderSingleton):
         self.filename = f"{cfg.memory_index}.json"
         if os.path.exists(self.filename):
             try:
-                with open(self.filename, "w+b") as f:
+                # Open the file for reading and writing without truncating it
+                # so that existing cache data is preserved.
+                with open(self.filename, "r+b") as f:
                     file_content = f.read()
                     if not file_content.strip():
                         file_content = b"{}"
